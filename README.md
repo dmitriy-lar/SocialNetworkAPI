@@ -2,7 +2,7 @@
 
 ## Docker Compose for postgres
 
-``
+```
 version: '3.9'
 services:
   postgres:
@@ -18,4 +18,4 @@ services:
 volumes:
   postgres:
     driver: local
-``
+```
