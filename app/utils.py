@@ -1,13 +1,22 @@
 from datetime import datetime, timedelta
 from typing import Union, Any
-from .settings import ACCESS_TOKEN_EXPIRE_MINUTES, REFRESH_TOKEN_EXPIRE_MINUTES, ALGORITHM
-from jose import jwt
+from fastapi import Depends, HTTPException, status
+from fastapi.security import OAuth2PasswordBearer
+from sqlalchemy import select
+from sqlalchemy.exc import NoResultFound
+from .databases import AsyncSession
+from .models.users import User
+from .schemas.users import UserScheme
+from .settings import ACCESS_TOKEN_EXPIRE_MINUTES, ALGORITHM
+from jose import jwt, JWTError
 from passlib.context import CryptContext
 from .settings import config_env
+from .dependencies import get_db
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-JWT_SECRET_KEY = config_env.get('JWT_SECRET_KEY')
-JWT_REFRESH_SECRET_KEY = config_env.get('JWT_REFRESH_SECRET_KEY')
+JWT_SECRET_KEY = config_env.get("JWT_SECRET_KEY")
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/users/login", scheme_name="JWT")
 
 
 def hashed_password(password: str) -> str:
@@ -22,19 +31,39 @@ def create_access_token(subject: Union[str, Any], expires_delta: int = None) -> 
     if expires_delta is not None:
         expires_delta = datetime.utcnow() + expires_delta
     else:
-        expires_delta = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+        expires_delta = datetime.utcnow() + timedelta(
+            minutes=ACCESS_TOKEN_EXPIRE_MINUTES
+        )
 
     to_encode = {"exp": expires_delta, "sub": str(subject)}
     encoded_jwt = jwt.encode(to_encode, JWT_SECRET_KEY, ALGORITHM)
     return encoded_jwt
 
 
-def create_refresh_token(subject: Union[str, Any], expires_delta: int = None) -> str:
-    if expires_delta is not None:
-        expires_delta = datetime.utcnow() + expires_delta
-    else:
-        expires_delta = datetime.utcnow() + timedelta(minutes=REFRESH_TOKEN_EXPIRE_MINUTES)
+async def get_current_user(
+    token: str = Depends(oauth2_scheme), db: AsyncSession = Depends(get_db)
+) -> UserScheme:
+    try:
+        payload = jwt.decode(token, JWT_SECRET_KEY, algorithms=[ALGORITHM])
+        username = payload.get("sub")
+    except JWTError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Could not validate credentials or token is expired",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
 
-    to_encode = {"exp": expires_delta, "sub": str(subject)}
-    encoded_jwt = jwt.encode(to_encode, JWT_REFRESH_SECRET_KEY, ALGORITHM)
-    return encoded_jwt
+    user = await db.execute(select(User).where(User.email == username))
+    try:
+        user = user.scalar_one()
+    except NoResultFound:
+        user = None
+
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Could not validate credentials",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    return user

@@ -7,7 +7,9 @@ from .routers import users
 if DEBUG:
     app = FastAPI(title="Social Network API", version="1.0.0")
 else:
-    app = FastAPI(title="Social Network API", version="1.0.0", redoc_url=None, docs_url=None)
+    app = FastAPI(
+        title="Social Network API", version="1.0.0", redoc_url=None, docs_url=None
+    )
 
 """Include routers"""
 app.include_router(users.router)
@@ -25,5 +27,5 @@ async def startup():
             await conn.run_sync(Base.metadata.create_all)
 
 
-if __name__ == '__main__':
-    uvicorn.run(app=app, host='127.0.0.1', port=8000)
+if __name__ == "__main__":
+    uvicorn.run(app=app, host="127.0.0.1", port=8000)

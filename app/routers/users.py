@@ -1,24 +1,34 @@
-from ..databases import AsyncSession
-from ..dependencies import get_db
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy import select
-from ..schemas.users import UserScheme, UserInDBScheme
-from fastapi import status
-from ..models.users import User
-from app.Responses.users.register_responses import response
-from ..utils import hashed_password
 from ..tags import Tags
+from ..models.users import User
+from ..dependencies import get_db
+from ..utils import get_current_user
+from ..databases import AsyncSession
+from ..schemas.users import UserScheme, UserInDBScheme
+from ..utils import hashed_password, verify_password, create_access_token
+from ..Responses.users import (
+    register_responses,
+    login_responses,
+    current_user_responses,
+)
+from sqlalchemy import select
+from sqlalchemy.exc import NoResultFound
+from fastapi import status
+from fastapi import APIRouter, Depends, HTTPException
+from fastapi.security import OAuth2PasswordRequestForm
 
-router = APIRouter(prefix='/api/users')
+router = APIRouter(prefix="/api/users")
 
 
 @router.post(
     "/register",
     status_code=status.HTTP_201_CREATED,
-    responses={201: response["201"], 400: response["400"]},
     tags=[Tags.users.value],
     summary="Register user",
     description="""**Register a new user**""",
+    responses={
+        201: register_responses.response["201"],
+        400: register_responses.response["400"],
+    },
 )
 async def create_user(user_scheme: UserInDBScheme, db: AsyncSession = Depends(get_db)):
     user = await db.execute(select(User).where(User.email == user_scheme.email))
@@ -36,6 +46,60 @@ async def create_user(user_scheme: UserInDBScheme, db: AsyncSession = Depends(ge
         "user": {"id": user.id, "email": user.email},
         "message": "Successfully registered",
     }
+
+
+@router.post(
+    "/login",
+    summary="Login User",
+    description="""**Login user**""",
+    tags=[Tags.users],
+    status_code=status.HTTP_200_OK,
+    responses={
+        200: login_responses.response["200"],
+        400: login_responses.response["400"],
+    },
+)
+async def login_user(
+    db: AsyncSession = Depends(get_db), form_data: OAuth2PasswordRequestForm = Depends()
+):
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid email or password"
+    )
+
+    user = await db.execute(select(User).where(User.email == form_data.username))
+
+    try:
+        user = user.scalar_one()
+    except NoResultFound:
+        user = None
+
+    if user is None:
+        raise credentials_exception
+
+    hashed_password = user.password
+
+    if not verify_password(form_data.password, hashed_password):
+        raise credentials_exception
+
+    access_token = create_access_token(user.email)
+
+    return {"access_token": access_token}
+
+
+@router.get(
+    "/me",
+    response_model=UserScheme,
+    status_code=status.HTTP_200_OK,
+    summary="Get current user",
+    description="""**Get current user**""",
+    tags=[Tags.users],
+    responses={
+        200: current_user_responses.response["200"],
+        400: current_user_responses.response["400"],
+    },
+)
+async def current_user(user: User = Depends(get_current_user)):
+    return user
 
 
 @router.get("/list", response_model=list[UserScheme])

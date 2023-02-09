@@ -1,5 +1,5 @@
 response = {
-    '201': {
+    "201": {
         "content": {
             "application/json": {
                 "example": {
@@ -9,7 +9,7 @@ response = {
             }
         }
     },
-    '400': {
+    "400": {
         "content": {
             "application/json": {
                 "example": {"detail": "User with this email already exists"}
