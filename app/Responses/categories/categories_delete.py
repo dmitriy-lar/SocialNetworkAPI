@@ -1,17 +1,10 @@
 response = {
-    "400": {
-        "content": {
-            "application/json": {
-                "example": {"detail": "Not authenticated"}
-            }
-        }
+    "401": {
+        "content": {"application/json": {"example": {"detail": "Not authenticated"}}}
     },
     "404": {
         "content": {
-            "application/json": {
-                "example": {"detail": "Category was not found"}
-            }
+            "application/json": {"example": {"detail": "Category was not found"}}
         }
     },
-
 }

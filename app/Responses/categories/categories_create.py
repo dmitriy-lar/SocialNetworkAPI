@@ -3,16 +3,17 @@ response = {
         "content": {
             "application/json": {
                 "example": {
-                    "title": 'Music',
+                    "title": "Music",
                 }
             }
         }
     },
     "400": {
         "content": {
-            "application/json": {
-                "example": {"detail": "Category already exists"}
-            }
+            "application/json": {"example": {"detail": "Category already exists"}}
         }
+    },
+    "401": {
+        "content": {"application/json": {"example": {"detail": "Not authenticated"}}}
     },
 }

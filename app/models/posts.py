@@ -18,7 +18,7 @@ class Post(Base):
         sqlalchemy.DateTime(timezone=True), server_default=func.now()
     )
     time_updated = sqlalchemy.Column(
-        sqlalchemy.DateTime(timezone=True), onupdate=func.now()
+        sqlalchemy.DateTime(timezone=True), onupdate=func.now(), nullable=True
     )
     users = relationship("User", backref="posts")
     categories = relationship('Category', backref='posts')

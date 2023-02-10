@@ -27,6 +27,7 @@ router = APIRouter(prefix="/api/categories")
     responses={
         201: categories_create.response["201"],
         400: categories_create.response["400"],
+        401: categories_create.response["401"],
     },
     response_model=CategoryResponseScheme,
     status_code=status.HTTP_201_CREATED,
@@ -63,7 +64,7 @@ async def category_create(
     response_model=list[CategoryResponseScheme],
     responses={
         200: categories_list.response["200"],
-        400: categories_list.response["400"],
+        401: categories_list.response["401"],
     },
 )
 async def categories_list(
@@ -82,7 +83,7 @@ async def categories_list(
     response_model=CategoryResponseScheme,
     responses={
         200: category_one.response["200"],
-        400: category_one.response["400"],
+        401: category_one.response["401"],
         404: category_one.response["404"],
     },
 )
@@ -117,7 +118,7 @@ async def get_category(
     status_code=status.HTTP_201_CREATED,
     responses={
         201: category_one.response["201"],
-        400: category_one.response["400"],
+        401: category_one.response["401"],
         404: category_one.response["404"],
     },
 )
@@ -156,7 +157,7 @@ async def update_category(
     tags=[Tags.categories],
     status_code=status.HTTP_204_NO_CONTENT,
     responses={
-        400: categories_delete.response["400"],
+        401: categories_delete.response["401"],
         404: categories_delete.response["404"],
     },
 )
