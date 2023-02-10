@@ -10,7 +10,7 @@ class User(Base):
     )
     email = sqlalchemy.Column(sqlalchemy.String, unique=True, nullable=False)
     password = sqlalchemy.Column(sqlalchemy.String, nullable=False)
-    is_active = sqlalchemy.Column(sqlalchemy.Boolean, default=True)
+    is_admin = sqlalchemy.Column(sqlalchemy.Boolean, default=False)
 
     def __str__(self):
         return self.email

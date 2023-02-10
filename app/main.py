@@ -3,6 +3,7 @@ from fastapi import FastAPI
 from .settings import INIT_TABLES, DEBUG
 from .databases import engine, Base
 from .routers import users
+from .routers import categories
 
 if DEBUG:
     app = FastAPI(title="Social Network API", version="1.0.0")
@@ -13,6 +14,7 @@ else:
 
 """Include routers"""
 app.include_router(users.router)
+app.include_router(categories.router)
 """"""
 
 

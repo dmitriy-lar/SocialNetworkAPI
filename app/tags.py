@@ -2,4 +2,6 @@ from enum import Enum
 
 
 class Tags(Enum):
-    users = "users"
+    users = 'Users'
+    categories = 'Categories'
+    posts = 'Posts'
