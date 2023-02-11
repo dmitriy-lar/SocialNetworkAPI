@@ -21,7 +21,6 @@ router = APIRouter(prefix="/api/likes")
     description="""**Add like to post**""",
     tags=[Tags.likes],
     status_code=status.HTTP_200_OK,
-    # TODO: responses
 )
 async def add_like(
     post_id: int,
@@ -46,7 +45,9 @@ async def add_like(
             detail="Owner of the post cannot like it",
         )
 
-    post_like_query = await db.execute(select(Like).where(Like.post_id == post_id))
+    post_like_query = await db.execute(
+        select(Like).where(Like.post_id == post_id, Like.user_id == user.id)
+    )
 
     try:
         posts_likes = post_like_query.scalar_one()
@@ -55,7 +56,7 @@ async def add_like(
 
     if posts_likes is None:
         like = Like(post_id=post_id, user_id=user.id, liked=True)
-
+        post.likes_count += 1
         db.add(like)
         await db.commit()
         return {"message": "Post was successfully liked"}
@@ -63,10 +64,11 @@ async def add_like(
     else:
         if posts_likes.liked:
             posts_likes.liked = False
-
+            post.likes_count -= 1
             await db.commit()
             return {"message": "Post was successfully unliked"}
         else:
             posts_likes.liked = True
+            post.likes_count += 1
             await db.commit()
             return {"message": "Post was successfully liked"}

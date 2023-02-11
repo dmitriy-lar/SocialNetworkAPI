@@ -19,6 +19,7 @@ class PostResponseScheme(PostScheme):
     user_id: int
     time_created: datetime
     time_updated: datetime = None
+    likes_count: int
 
     class Config:
         orm_mode = True

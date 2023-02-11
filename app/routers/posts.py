@@ -1,6 +1,8 @@
 from typing import Sequence
 from sqlalchemy import select
 from sqlalchemy.exc import NoResultFound
+
+from app.models.likes import Like
 from ..tags import Tags
 from fastapi import status
 from fastapi import APIRouter, Depends, HTTPException
@@ -71,6 +73,27 @@ async def list_of_posts(
     posts_query = await db.execute(select(Post))
 
     return posts_query.scalars().all()
+
+
+@router.get(
+    "/favorite",
+    summary="List of favorite posts",
+    description="""**Get list of posts that current user liked**""",
+    tags=[Tags.posts],
+    status_code=status.HTTP_200_OK,
+)
+async def get_favorite_posts(
+    db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)
+) -> list:
+    likes_query = await db.execute(
+        select(Like).where(Like.user_id == user.id, Like.liked == True)
+    )
+    result = []
+    for like in likes_query.scalars().all():
+        post_query = await db.execute(select(Post).where(Post.id == like.post_id))
+        result.append(post_query.scalar_one())
+
+    return result
 
 
 @router.get(
