@@ -5,6 +5,8 @@ from .databases import engine, Base
 from .routers import users
 from .routers import categories
 from .routers import posts
+from .routers import likes
+
 
 if DEBUG:
     app = FastAPI(title="Social Network API", version="1.0.0")
@@ -17,6 +19,7 @@ else:
 app.include_router(users.router)
 app.include_router(categories.router)
 app.include_router(posts.router)
+app.include_router(likes.router)
 """"""
 
 

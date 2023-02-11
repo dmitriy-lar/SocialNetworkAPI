@@ -80,6 +80,7 @@ async def list_of_posts(
     tags=[Tags.posts],
     status_code=status.HTTP_200_OK,
     response_model=list[PostResponseScheme],
+    responses={200: post_list.response["200"], 404: post_list.response["404"]},
 )
 async def current_user_posts(
     db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)
