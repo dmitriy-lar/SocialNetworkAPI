@@ -1,3 +1,4 @@
+from typing import Sequence
 from sqlalchemy import select
 from sqlalchemy.exc import NoResultFound
 from ..tags import Tags
@@ -67,9 +68,9 @@ async def category_create(
         401: categories_list.response["401"],
     },
 )
-async def categories_list(
+async def list_of_categories(
     db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)
-) -> list[CategoryResponseScheme]:
+) -> Sequence[Category]:
     categories_query = await db.execute(select(Category))
     return categories_query.scalars().all()
 
@@ -113,7 +114,7 @@ async def get_category(
     "/{category_id}/update",
     summary="Update category",
     description="""**Update category by _id_**""",
-    tags={Tags.categories},
+    tags=[Tags.categories],
     response_model=CategoryResponseScheme,
     status_code=status.HTTP_201_CREATED,
     responses={

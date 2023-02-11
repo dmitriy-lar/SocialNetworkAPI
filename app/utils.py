@@ -12,7 +12,6 @@ from jose import jwt, JWTError
 from passlib.context import CryptContext
 from .settings import config_env
 from .dependencies import get_db
-from .models.posts import Post
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 JWT_SECRET_KEY = config_env.get("JWT_SECRET_KEY")
@@ -42,7 +41,7 @@ def create_access_token(subject: Union[str, Any], expires_delta: int = None) -> 
 
 
 async def get_current_user(
-        token: str = Depends(oauth2_scheme), db: AsyncSession = Depends(get_db)
+    token: str = Depends(oauth2_scheme), db: AsyncSession = Depends(get_db)
 ) -> UserScheme:
     try:
         payload = jwt.decode(token, JWT_SECRET_KEY, algorithms=[ALGORITHM])
@@ -70,10 +69,12 @@ async def get_current_user(
     return user
 
 
-async def is_admin_user(db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)) -> bool:
+async def is_admin_user(
+    db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)
+) -> bool:
     if not user.is_admin:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='You do not have enough permissions')
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="You do not have enough permissions",
+        )
     return True
-
-
-

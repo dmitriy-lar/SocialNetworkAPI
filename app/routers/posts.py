@@ -1,4 +1,5 @@
-from sqlalchemy import select, update
+from typing import Sequence
+from sqlalchemy import select
 from sqlalchemy.exc import NoResultFound
 from ..tags import Tags
 from fastapi import status
@@ -9,7 +10,7 @@ from ..models.posts import Post
 from ..utils import get_current_user
 from ..models.users import User
 from ..models.categories import Category
-from ..schemas.posts import PostScheme, PostRequestScheme, PostResponseScheme
+from ..schemas.posts import PostRequestScheme, PostResponseScheme
 from ..Responses.posts import post_create, post_list, post_one
 
 router = APIRouter(prefix="/api/posts")
@@ -64,12 +65,39 @@ async def create_post(
     response_model=list[PostResponseScheme],
     responses={200: post_list.response["200"], 401: post_list.response["401"]},
 )
-async def post_list(
+async def list_of_posts(
     db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)
-) -> list[PostResponseScheme]:
+) -> Sequence[Post]:
     posts_query = await db.execute(select(Post))
 
     return posts_query.scalars().all()
+
+
+@router.get(
+    "/me",
+    summary="List of posts of current user",
+    description="""**List of post of current user**""",
+    tags=[Tags.posts],
+    status_code=status.HTTP_200_OK,
+    response_model=list[PostResponseScheme],
+)
+async def current_user_posts(
+    db: AsyncSession = Depends(get_db), user: User = Depends(get_current_user)
+) -> Sequence[Post]:
+    posts_query = await db.execute(select(Post).where(Post.user_id == user.id))
+
+    try:
+        posts = posts_query.scalars().all()
+    except NoResultFound:
+        posts = None
+
+    if posts is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="You do not have posts",
+        )
+
+    return posts
 
 
 @router.get(

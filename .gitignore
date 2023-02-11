@@ -2,3 +2,5 @@
 __pycache__
 .env
 docker-compose-db.yml
+pyrightconfig.json
+.flake8
