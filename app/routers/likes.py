@@ -1,7 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import except_
 from sqlalchemy.exc import NoResultFound
-from sqlalchemy.orm.attributes import register_attribute
 from sqlalchemy.sql import select
 from app.models.likes import Like
 from app.models.users import User

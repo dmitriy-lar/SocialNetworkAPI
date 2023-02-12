@@ -1,6 +1,4 @@
 from datetime import datetime
-from .categories import CategoryResponseScheme
-
 from pydantic import BaseModel
 
 
